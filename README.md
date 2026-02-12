@@ -27,4 +27,10 @@ So uh yeah, that's all this is, I minified it further at [picogpt.py](picogpt.py
 
 The `qrgen.py` script is adapted from my **Doom running inside a QR code** project: [backdooms](https://github.com/kuberwastaken/backdooms).
 
+The QR now contains a single bootstrap command.
+When scanned, copy the text and paste it in a terminal to:
+
+1. restore `picogpt.py`
+2. run `picogpt.py` immediately
+
 As for the naming choice, iykyk

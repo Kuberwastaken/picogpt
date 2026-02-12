@@ -8,17 +8,14 @@ import zlib
 import qrcode
 
 
-def build_restore_command(input_file_name: str, b64_payload: str) -> str:
+def build_runner_payload(input_file_name: str, b64_payload: str) -> str:
     return (
-        "python -c \"import base64,zlib,pathlib;"
-        f"pathlib.Path('{input_file_name}').write_bytes("
-        f"zlib.decompress(base64.b64decode('{b64_payload}'),31));"
-        f"print('wrote {input_file_name}')\""
+        "python -c \"import base64,zlib,pathlib,runpy;"
+        f"p=pathlib.Path('{input_file_name}');"
+        f"p.write_bytes(zlib.decompress(base64.b64decode('{b64_payload}'),31));"
+        "print('wrote',p);"
+        "runpy.run_path(str(p),run_name='__main__')\""
     )
-
-
-def build_raw_payload(input_file_name: str, b64_payload: str) -> str:
-    return f"PICOQR|{input_file_name}|gzip+base64|{b64_payload}"
 
 
 def make_qr(payload: str, output_file: str, error_level: str) -> None:
@@ -55,14 +52,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "output_png",
         nargs="?",
-        default="picogpt_qr.png",
-        help="Output QR image path (default: picogpt_qr.png)",
-    )
-    parser.add_argument(
-        "--mode",
-        choices=["python-cmd", "raw"],
-        default="python-cmd",
-        help="Payload format inside the QR (default: python-cmd)",
+        default="qrcode.png",
+        help="Output QR image path (default: qrcode.png)",
     )
     parser.add_argument(
         "--ec",
@@ -88,10 +79,7 @@ def main() -> None:
     b64_payload = base64.b64encode(compressed).decode("ascii")
 
     input_file_name = os.path.basename(args.input_file)
-    if args.mode == "python-cmd":
-        payload = build_restore_command(input_file_name, b64_payload)
-    else:
-        payload = build_raw_payload(input_file_name, b64_payload)
+    payload = build_runner_payload(input_file_name, b64_payload)
 
     print(f"Input bytes: {len(raw_data)}")
     print(f"Compressed bytes (gzip): {len(compressed)}")
@@ -105,10 +93,7 @@ def main() -> None:
         sys.exit(2)
 
     print(f"QR code saved to: {args.output_png}")
-    if args.mode == "python-cmd":
-        print("Scan/copy payload and run it in a terminal to recreate the file.")
-    else:
-        print("Raw mode payload is: PICOQR|<filename>|gzip+base64|<data>")
+    print("Scan/copy payload and paste in terminal to restore and run the script.")
 
 
 if __name__ == "__main__":
