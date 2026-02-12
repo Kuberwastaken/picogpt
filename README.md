@@ -25,6 +25,16 @@ IT WASN'T MINIFIED FURTHER
 
 So uh yeah, that's all this is, I minified it further at [picogpt.py](picogpt.py)
 
+and it works IN JUST 84 LINES!
+
+For context, these 84 lines of python include:
+
+- A custom Autograd engine
+- Multi-head attention (MHA)
+- Feed-forward MLP with GeLU approximation
+- AdamW Optimizer
+- Training & Inference loops
+
 The `qrgen.py` script is adapted from my **Doom running inside a QR code** project: [backdooms](https://github.com/kuberwastaken/backdooms).
 
 The QR now contains a single bootstrap command.
