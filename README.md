@@ -25,9 +25,9 @@ IT WASN'T MINIFIED FURTHER
 
 So uh yeah, that's all this is, I minified it further at [picogpt.py](picogpt.py)
 
-and it works IN JUST 84 LINES!
+and it works IN JUST 64 LINES!
 
-For context, these 84 lines of python include:
+For context, these 64 lines of python include:
 
 - A custom Autograd engine
 - Multi-head attention (MHA)
@@ -42,5 +42,6 @@ When scanned, copy the text and paste it in a terminal to:
 
 1. restore `picogpt.py`
 2. run `picogpt.py` immediately
+
 
 As for the naming choice, iykyk
