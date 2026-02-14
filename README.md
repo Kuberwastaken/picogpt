@@ -21,27 +21,52 @@ It was genuinely so cool but then I saw something that made me laugh out loud
     <img src="assets/gist-preview.png" alt="QR Code for The Backdooms">
 </p>
 
-IT WASN'T MINIFIED FURTHER
+IT WASN'T MINIFIED
 
-So uh yeah, that's all this is, I minified it further at [picogpt.py](picogpt.py)
+So uh yeah, that's all this is, I minified it further and then went a step further...
 
-and it works IN JUST 64 LINES!
+## JavaScript Port
 
-For context, these 64 lines of python include:
+I ported the entire thing to **JavaScript** for native browser execution! The minified version at [picogpt.qr.html](picogpt.qr.html) is what goes into the QR code.
+
+It works in **JUST 39 LINES** of pure JavaScript!
+
+For context, these 39 lines include:
 
 - A custom Autograd engine
 - Multi-head attention (MHA)
-- Feed-forward MLP with GeLU approximation
-- AdamW Optimizer
+- Feed-forward MLP with GeLU² approximation
+- AdamW Optimizer with cosine learning rate schedule
 - Training & Inference loops
+- Seeded PRNG (xoshiro128**)
 
-The `qrgen.py` script is adapted from my **Doom running inside a QR code** project: [backdooms](https://github.com/kuberwastaken/backdooms).
+### Architecture
 
-The QR now contains a single bootstrap command.
-When scanned, copy the text and paste it in a terminal to:
+```
+Layers:    1
+Heads:     4  
+Embedding: 16
+Context:   8
+MLP dim:   64
+Params:    4,064
+```
 
-1. restore `picogpt.py`
-2. run `picogpt.py` immediately
+## QR Code Generation
 
+The `qrgen.py` script is adapted from my **Doom running inside a QR code** project: [The Backdooms](https://github.com/kuberwastaken/backdooms).
+
+The QR code contains a compressed HTML payload using the browser's native `DecompressionStream` API. When scanned:
+
+1. The browser decompresses the gzipped base64 payload
+2. Renders the full HTML page with the GPT implementation
+3. Trains the model right in your browser!
+
+The entire training loop, inference, and UI fits in a **version-40-L QR code** (2953 bytes).
+
+## Legacy Python Version
+
+The original minified Python implementation is preserved in the `legacy/` folder. It was 64 lines of minified code, but JavaScript allows for native browser execution without any dependencies so that's where we're at.
+
+It's still pretty cool though, you can read it in [legacy/picogpt.py](legacy/picogpt.py).
 
 As for the naming choice, iykyk

@@ -1,0 +1,39 @@
+<pre style="background:#111;color:#0ff;padding:20px" id=o><script type=module>
+let P=t=>{o.textContent+=t+'\n';scrollTo(0,1e9)},S=new Uint32Array(4),s=42,i,j
+for(i=0;i<4;i++)S[i]=(s=Math.imul(s,1664525)+1013904223)>>>0
+let R=()=>{let r=Math.imul(S[1],5),t=S[1]<<9;S[2]^=S[0];S[3]^=S[1];S[1]^=S[2];S[0]^=S[3];S[2]^=t;S[3]=(S[3]<<11)|(S[3]>>>21);return(r>>>0)/4294967296}
+let G=(m,d)=>m+d*Math.sqrt(-2*Math.log(R()))*Math.cos(2*Math.PI*R()),_g=0
+class E{constructor(d,c,l){this.d=d;this.g=0;this.c=c||[];this.l=l||[];this.n=0}
+a(o){o=o instanceof E?o:new E(o);return new E(this.d+o.d,[this,o],[1,1])}
+m(o){o=o instanceof E?o:new E(o);return new E(this.d*o.d,[this,o],[o.d,this.d])}
+p(n){return new E(this.d**n,[this],[n*this.d**(n-1)])}
+L(){return new E(Math.log(this.d),[this],[1/this.d])}
+X(){let e=Math.exp(this.d);return new E(e,[this],[e])}
+r(){return new E(Math.max(0,this.d),[this],[+(this.d>0)])}
+b(){let g=++_g,q=[],i,v,j;(function t(v){if(v.n===g)return;v.n=g;for(let c of v.c)t(c);q.push(v)})(this);this.g=1;for(i=q.length-1;i>=0;i--){v=q[i];for(j=0;j<v.c.length;j++)v.c[j].g+=v.l[j]*v.g}}}
+let Z=(r,c,e=.02)=>Array.from({length:r},()=>Array.from({length:c},()=>new E(G(0,e))))
+let sm=a=>a.reduce((x,y)=>x.a(y)),li=(x,w)=>w.map(r=>sm(r.map((v,i)=>v.m(x[i]))))
+let sf=a=>{let m=Math.max(...a.map(v=>v.d)),e=a.map(v=>v.a(-m).X()),s=sm(e);return e.map(v=>v.m(s.p(-1)))}
+let nr=a=>{let s=sm(a.map(v=>v.m(v))).m(1/a.length).a(1e-5).p(-.5);return a.map(v=>v.m(s))}
+P('PicoGPT\nFetching')
+let ds=(await(await fetch('https://raw.githubusercontent.com/karpathy/makemore/refs/heads/master/names.txt')).text()).trim().split('\n').map(s=>s.trim()).filter(Boolean)
+for(i=ds.length-1;i>0;i--){j=R()*(i+1)|0;[ds[i],ds[j]]=[ds[j],ds[i]]}
+let cs=[...new Set(ds.join(''))].sort(),B=cs.length,Q=B+1
+P(`v:${Q} d:${ds.length}`)
+let W={t:Z(Q,16),p:Z(8,16),h:Z(Q,16),q:Z(16,16),k:Z(16,16),v:Z(16,16),o:Z(16,16,0),f:Z(64,16),g:Z(16,64,0)}
+let pa=Object.values(W).flat(1/0)
+P(`p:${pa.length}\nTraining`)
+let fw=(tk,ps,ky,vl)=>{let x=nr(W.t[tk].map((v,i)=>v.a(W.p[ps][i]))),rs=x;x=nr(x)
+let q=li(x,W.q),k=li(x,W.k),v0=li(x,W.v);ky.push(k);vl.push(v0);let hd=[]
+for(let h=0;h<4;h++){let o=h*4,qh=q.slice(o,o+4),kh=ky.map(k=>k.slice(o,o+4)),vh=vl.map(v=>v.slice(o,o+4)),at=sf(kh.map(k=>sm(qh.map((q,i)=>q.m(k[i]))).m(.5)))
+for(let i=0;i<4;i++)hd.push(sm(at.map((a,j)=>a.m(vh[j][i]))))}
+x=li(hd,W.o).map((v,i)=>v.a(rs[i]));rs=x;x=nr(x);x=li(x,W.f).map(v=>v.r().p(2));x=li(x,W.g).map((v,i)=>v.a(rs[i]));return li(x,W.h)}
+let N=500,mb=new Float64Array(pa.length),vb=new Float64Array(pa.length),st=0
+let tr=()=>{let t0=Date.now();while(st<N){let d=ds[st%ds.length],tk=[B,...Array.from(d,c=>cs.indexOf(c)),B],ct=Math.min(8,tk.length-1),ky=[],vl=[],lo=[]
+for(let t=0;t<ct;t++){lo.push(sf(fw(tk[t],t,ky,vl))[tk[t+1]].L().m(-1))}let ls=sm(lo).m(1/ct);ls.b();let lr=.005+.005*Math.cos(Math.PI*st/N)
+for(i=0;i<pa.length;i++){let p=pa[i];mb[i]=.9*mb[i]+.1*p.g;vb[i]=.95*vb[i]+.05*p.g**2;p.d-=lr*(mb[i]/(1-.9**(st+1)))/((vb[i]/(1-.95**(st+1)))**.5+1e-8);p.g=0}
+if(st%50<1)P(`${st+1}/${N} loss=${ls.d.toFixed(4)}`);st++;if(Date.now()-t0>50){requestAnimationFrame(tr);return}}
+P('\n— names —');for(let s=0;s<20;s++){let ky=[],vl=[],tk=B,nm=[]
+for(let t=0;t<8;t++){let w=sf(fw(tk,t,ky,vl).map(v=>v.m(2))).map(v=>v.d),tt=0;for(let x of w)tt+=x;let r=R()*tt
+for(i=0;i<w.length;i++){r-=w[i];if(r<=0){tk=i;break}}if(tk===B)break;nm.push(cs[tk])}P(`  ${nm.join('')}`)}P('')};tr()
+</script>

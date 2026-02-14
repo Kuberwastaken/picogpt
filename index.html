@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PicoGPT — GPT in a QR Code</title>
+    <meta name="description"
+        content="A complete GPT trained from scratch in your browser. Autograd, multi-head attention, AdamW — all fitting inside a QR code.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            min-height: 100vh
+        }
+
+        .main {
+            padding: 48px 56px;
+            overflow-y: auto
+        }
+
+        .sidebar {
+            border-left: 1px solid #1a1a1a;
+            padding: 48px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -.02em;
+            margin-bottom: 4px
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 40px;
+            line-height: 1.5
+        }
+
+        .tagline a {
+            color: #999;
+            text-decoration: underline;
+            text-underline-offset: 2px
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace
+        }
+
+        .label {
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #555;
+            margin-bottom: 8px
+        }
+
+        .meta {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 36px;
+            font-size: 13px;
+            color: #888
+        }
+
+        .meta strong {
+            color: #fff;
+            font-weight: 600
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: #111;
+            border-radius: 2px;
+            margin-bottom: 12px;
+            overflow: hidden
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #fff;
+            transition: width .2s
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 24px
+        }
+
+        .stats span {
+            color: #999
+        }
+
+        #log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+            color: #444;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 32px;
+            white-space: pre
+        }
+
+        #log .recent {
+            color: #888
+        }
+
+        canvas#chart {
+            width: 100%;
+            height: 120px;
+            border: 1px solid #111;
+            border-radius: 6px;
+            margin-bottom: 36px
+        }
+
+        .names-section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px
+        }
+
+        .names {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px
+        }
+
+        .name {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 4px;
+            padding: 5px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #ccc;
+            opacity: 0;
+            animation: show .3s ease forwards
+        }
+
+        @keyframes show {
+            to {
+                opacity: 1
+            }
+        }
+
+        .sidebar h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px
+        }
+
+        .sidebar .qr {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            image-rendering: pixelated;
+            display: block
+        }
+
+        .sidebar .qr-note {
+            font-size: 11px;
+            color: #444;
+            margin-top: 8px;
+            line-height: 1.5
+        }
+
+        .sidebar .arch {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #555;
+            line-height: 2
+        }
+
+        .sidebar .arch strong {
+            color: #888;
+            font-weight: 500
+        }
+
+        .status {
+            font-size: 12px;
+            color: #444;
+            margin-bottom: 4px
+        }
+
+        .footer {
+            margin-top: auto;
+            font-size: 11px;
+            color: #333;
+            line-height: 1.6
+        }
+
+        .footer a {
+            color: #555;
+            text-decoration: none
+        }
+
+        @media(max-width:768px) {
+            .page {
+                grid-template-columns: 1fr
+            }
+
+            .sidebar {
+                border-left: none;
+                border-top: 1px solid #1a1a1a
+            }
+
+            .main {
+                padding: 32px 24px
+            }
+
+            .sidebar {
+                padding: 32px 24px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="main">
+            <h1>PicoGPT</h1>
+            <p class="tagline">A complete GPT — autograd, multi-head attention, AdamW optimizer — trained from scratch
+                in your browser.<br>Small enough to fit in a <a href="qrcode.png">QR code</a>.</p>
+
+            <div class="meta">
+                <div>Vocab <strong id="c-vocab">—</strong></div>
+                <div>Params <strong id="c-params">—</strong></div>
+                <div>Docs <strong id="c-docs">—</strong></div>
+            </div>
+
+            <p class="status" id="status">Fetching training data…</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="bar"></div>
+            </div>
+            <div class="stats">
+                <div>Step <span id="s-step">0</span>/<span id="s-total">500</span></div>
+                <div>Loss <span id="s-loss">—</span></div>
+                <div>LR <span id="s-lr">—</span></div>
+            </div>
+
+            <canvas id="chart"></canvas>
+
+            <div id="log"></div>
+
+            <div class="names-section">
+                <h2>Generated Names</h2>
+                <div class="names" id="names"></div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div>
+                <h3>Architecture</h3>
+                <div class="arch">
+                    <strong>Layers</strong> 1<br>
+                    <strong>Heads</strong> 4<br>
+                    <strong>Dim</strong> 16<br>
+                    <strong>Context</strong> 8<br>
+                    <strong>MLP</strong> 64<br>
+                    <strong>Act</strong> ReLU²
+                </div>
+            </div>
+            <div>
+                <h3>QR Code</h3>
+                <img class="qr" src="qrcode.png" alt="QR Code">
+                <p class="qr-note">Scan → opens in browser → trains a GPT from scratch. No install needed. Version 39,
+                    error correction L.</p>
+            </div>
+            <div class="footer">
+                <a href="https://github.com/kuberwastaken">@kuberwastaken</a><br>
+                Inspired by <a href="https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95">Karpathy's
+                    MicroGPT</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ─── Loss chart ───
+        const chart = document.getElementById('chart'), ccx = chart.getContext('2d');
+        chart.width = chart.offsetWidth * 2; chart.height = 240;
+        const lossHistory = [];
+        function drawChart() {
+            ccx.clearRect(0, 0, chart.width, chart.height);
+            if (lossHistory.length < 2) return;
+            const maxL = Math.max(...lossHistory), minL = Math.min(...lossHistory), range = maxL - minL || 1;
+            ccx.beginPath();
+            lossHistory.forEach((l, i) => {
+                const x = i / (lossHistory.length - 1) * chart.width, y = chart.height - ((l - minL) / range) * (chart.height - 20) - 10;
+                i ? ccx.lineTo(x, y) : ccx.moveTo(x, y);
+            });
+            ccx.strokeStyle = '#333'; ccx.lineWidth = 1.5; ccx.stroke();
+        }
+
+        // ─── PRNG ───
+        const _s = new Uint32Array(4);
+        function seed(v) { let s = v | 0; for (let i = 0; i < 4; i++)_s[i] = (s = Math.imul(s, 1664525) + 1013904223) >>> 0 }
+        function rand() { const r = Math.imul(_s[1], 5), t = _s[1] << 9; _s[2] ^= _s[0]; _s[3] ^= _s[1]; _s[1] ^= _s[2]; _s[0] ^= _s[3]; _s[2] ^= t; _s[3] = (_s[3] << 11) | (_s[3] >>> 21); return (r >>> 0) / 4294967296 }
+        function gauss(m, s) { return m + s * Math.sqrt(-2 * Math.log(rand())) * Math.cos(2 * Math.PI * rand()) }
+
+        // ─── Autograd ───
+        let _gen = 0;
+        class Value {
+            constructor(d, c = [], l = []) { this.data = d; this.grad = 0; this._c = c; this._l = l; this._g = 0 }
+            add(o) { o = o instanceof Value ? o : new Value(o); return new Value(this.data + o.data, [this, o], [1, 1]) }
+            mul(o) { o = o instanceof Value ? o : new Value(o); return new Value(this.data * o.data, [this, o], [o.data, this.data]) }
+            pow(n) { return new Value(this.data ** n, [this], [n * this.data ** (n - 1)]) }
+            log() { return new Value(Math.log(this.data), [this], [1 / this.data]) }
+            exp() { const e = Math.exp(this.data); return new Value(e, [this], [e]) }
+            relu() { return new Value(Math.max(0, this.data), [this], [+(this.data > 0)]) }
+            neg() { return this.mul(-1) }
+            sub(o) { return this.add(o instanceof Value ? o.neg() : -o) }
+            div(o) { return this.mul(o instanceof Value ? o.pow(-1) : 1 / o) }
+            backward() {
+                const g = ++_gen, ord = [];
+                (function tp(v) { if (v._g === g) return; v._g = g; for (const c of v._c) tp(c); ord.push(v) })(this);
+                this.grad = 1;
+                for (let i = ord.length - 1; i >= 0; i--) { const v = ord[i]; for (let j = 0; j < v._c.length; j++)v._c[j].grad += v._l[j] * v.grad }
+            }
+        }
+
+        const sum = a => a.reduce((x, y) => x.add(y));
+        const linear = (x, w) => w.map(r => sum(r.map((v, i) => v.mul(x[i]))));
+        const softmax = a => { const m = Math.max(...a.map(v => v.data)), e = a.map(v => v.sub(m).exp()), s = sum(e); return e.map(v => v.div(s)) };
+        const rmsnorm = a => { const s = sum(a.map(v => v.mul(v))).mul(1 / a.length).add(1e-5).pow(-.5); return a.map(v => v.mul(s)) };
+        const mat = (r, c, std = .02) => Array.from({ length: r }, () => Array.from({ length: c }, () => new Value(gauss(0, std))));
+
+        // ─── Auto-start ───
+        (async function () {
+            seed(42);
+            const res = await fetch('https://raw.githubusercontent.com/karpathy/makemore/refs/heads/master/names.txt');
+            const docs = (await res.text()).trim().split('\n').map(s => s.trim()).filter(Boolean);
+            for (let i = docs.length - 1; i > 0; i--) { const j = rand() * (i + 1) | 0;[docs[i], docs[j]] = [docs[j], docs[i]] }
+
+            const chars = [...new Set(docs.join(''))].sort();
+            const BOS = chars.length, V = chars.length + 1;
+            document.getElementById('c-vocab').textContent = V;
+            document.getElementById('c-docs').textContent = docs.length.toLocaleString();
+
+            const D = 16, M = 4, J = 1, Y = 8, H = D / M;
+            const W = { wte: mat(V, D), wpe: mat(Y, D), lm_head: mat(V, D) };
+            for (let i = 0; i < J; i++) {
+                W[`l${i}.wq`] = mat(D, D); W[`l${i}.wk`] = mat(D, D); W[`l${i}.wv`] = mat(D, D);
+                W[`l${i}.wo`] = mat(D, D, 0); W[`l${i}.f1`] = mat(4 * D, D); W[`l${i}.f2`] = mat(D, 4 * D, 0);
+            }
+            const params = Object.values(W).flat(Infinity);
+            document.getElementById('c-params').textContent = params.length.toLocaleString();
+            document.getElementById('status').textContent = 'Training…';
+
+            function fwd(tok, pos, keys, vals) {
+                let x = rmsnorm(W.wte[tok].map((v, i) => v.add(W.wpe[pos][i])));
+                for (let l = 0; l < J; l++) {
+                    let res = x; x = rmsnorm(x);
+                    const q = linear(x, W[`l${l}.wq`]), k = linear(x, W[`l${l}.wk`]), v0 = linear(x, W[`l${l}.wv`]);
+                    keys[l].push(k); vals[l].push(v0);
+                    const heads = [];
+                    for (let h = 0; h < M; h++) {
+                        const o = h * H, qh = q.slice(o, o + H);
+                        const kh = keys[l].map(k => k.slice(o, o + H)), vh = vals[l].map(v => v.slice(o, o + H));
+                        const attn = softmax(kh.map(k => sum(qh.map((q, i) => q.mul(k[i]))).mul(1 / H ** .5)));
+                        for (let i = 0; i < H; i++)heads.push(sum(attn.map((a, j) => a.mul(vh[j][i]))));
+                    }
+                    x = linear(heads, W[`l${l}.wo`]).map((v, i) => v.add(res[i]));
+                    res = x; x = rmsnorm(x);
+                    x = linear(x, W[`l${l}.f1`]).map(v => v.relu().pow(2));
+                    x = linear(x, W[`l${l}.f2`]).map((v, i) => v.add(res[i]));
+                }
+                return linear(x, W.lm_head);
+            }
+
+            const steps = 500, lr0 = .01, b1 = .9, b2 = .95;
+            const mb = new Float64Array(params.length), vb = new Float64Array(params.length);
+            const logEl = document.getElementById('log');
+            let step = 0;
+
+            function trainStep() {
+                const t0 = performance.now();
+                while (step < steps) {
+                    const doc = docs[step % docs.length];
+                    const toks = [BOS, ...Array.from(doc, c => chars.indexOf(c)), BOS];
+                    const ctx = Math.min(Y, toks.length - 1);
+                    const keys = Array.from({ length: J }, () => []), vals = Array.from({ length: J }, () => []);
+                    const ls = [];
+                    for (let t = 0; t < ctx; t++) { ls.push(softmax(fwd(toks[t], t, keys, vals))[toks[t + 1]].log().neg()) }
+                    const loss = sum(ls).mul(1 / ctx);
+                    loss.backward();
+                    const lr_t = lr0 * .5 * (1 + Math.cos(Math.PI * step / steps));
+                    for (let i = 0; i < params.length; i++) {
+                        const p = params[i];
+                        mb[i] = b1 * mb[i] + (1 - b1) * p.grad; vb[i] = b2 * vb[i] + (1 - b2) * p.grad ** 2;
+                        p.data -= lr_t * (mb[i] / (1 - b1 ** (step + 1))) / ((vb[i] / (1 - b2 ** (step + 1))) ** .5 + 1e-8);
+                        p.grad = 0;
+                    }
+                    lossHistory.push(loss.data);
+                    step++;
+
+                    if (step % 5 === 0 || step === steps) {
+                        document.getElementById('bar').style.width = (step / steps * 100) + '%';
+                        document.getElementById('s-step').textContent = step;
+                        document.getElementById('s-loss').textContent = loss.data.toFixed(4);
+                        document.getElementById('s-lr').textContent = lr_t.toFixed(5);
+                        drawChart();
+                    }
+                    if (step % 25 === 0) {
+                        logEl.textContent += `step ${String(step).padStart(4)}  loss ${loss.data.toFixed(4)}\n`;
+                        logEl.scrollTop = logEl.scrollHeight;
+                    }
+                    if (performance.now() - t0 > 40) { requestAnimationFrame(trainStep); return }
+                }
+
+                document.getElementById('status').textContent = 'Done';
+                logEl.textContent += '\n--- inference ---\n';
+
+                const temp = .5;
+                const grid = document.getElementById('names');
+                for (let s = 0; s < 20; s++) {
+                    const keys = Array.from({ length: J }, () => []), vals = Array.from({ length: J }, () => []);
+                    let tok = BOS; const name = [];
+                    for (let t = 0; t < Y; t++) {
+                        const probs = softmax(fwd(tok, t, keys, vals).map(v => v.div(temp))).map(v => v.data);
+                        let total = 0; for (const w of probs) total += w;
+                        let r = rand() * total;
+                        for (let i = 0; i < probs.length; i++) { r -= probs[i]; if (r <= 0) { tok = i; break } }
+                        if (tok === BOS) break;
+                        name.push(chars[tok]);
+                    }
+                    const tag = document.createElement('div');
+                    tag.className = 'name';
+                    tag.textContent = name.join('');
+                    tag.style.animationDelay = s * 60 + 'ms';
+                    grid.appendChild(tag);
+                    logEl.textContent += `  ${name.join('')}\n`;
+                }
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+            requestAnimationFrame(trainStep);
+        })();
+    </script>
+</body>
+
+</html>
