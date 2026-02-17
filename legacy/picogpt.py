@@ -1,7 +1,7 @@
 v,u,t,l='lm_head','wpe','wte','input.txt'
 s,R,M,L,F,B=isinstance,zip,sum,print,len,range
-import os,math as N,random as S
-S.seed(42)
+import os,math as N,random as S,time as TI
+S.seed(int(TI.time()*1000))
 if not os.path.exists(l):import urllib.request as P;P.urlretrieve('https://raw.githubusercontent.com/karpathy/makemore/refs/heads/master/names.txt',l)
 O=[x.strip()for x in open(l).read().splitlines()if x.strip()];S.shuffle(O);L(f"num docs: {F(O)}")
 T=sorted(set(''.join(O)));U,V=F(T),F(T)+1;L(f"vocab size: {V}")

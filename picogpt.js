@@ -13,7 +13,7 @@ const gauss = (m,s) => m + s * Math.sqrt(-2*Math.log(rand())) * Math.cos(2*Math.
 const shuffle = a => { for (let i = a.length-1; i > 0; i--) { const j = rand()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } };
 const choices = (p,w) => { let t=0; for (const x of w) t+=x; let r=rand()*t; for (let i=0;i<p.length;i++) { r-=w[i]; if(r<=0) return p[i]; } return p.at(-1); };
 
-seed(42);
+seed(Date.now());
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 const INPUT = 'input.txt';

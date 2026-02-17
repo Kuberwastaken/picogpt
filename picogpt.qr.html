@@ -1,5 +1,5 @@
 <pre style="background:#111;color:#0ff;padding:20px" id=o><script type=module>
-let P=t=>{o.textContent+=t+'\n';scrollTo(0,1e9)},S=new Uint32Array(4),s=42,i,j
+let P=t=>{o.textContent+=t+'\n';scrollTo(0,1e9)},S=new Uint32Array(4),s=Date.now(),i,j
 for(i=0;i<4;i++)S[i]=(s=Math.imul(s,1664525)+1013904223)>>>0
 let R=()=>{let r=Math.imul(S[1],5),t=S[1]<<9;S[2]^=S[0];S[3]^=S[1];S[1]^=S[2];S[0]^=S[3];S[2]^=t;S[3]=(S[3]<<11)|(S[3]>>>21);return(r>>>0)/4294967296}
 let G=(m,d)=>m+d*Math.sqrt(-2*Math.log(R()))*Math.cos(2*Math.PI*R()),_g=0

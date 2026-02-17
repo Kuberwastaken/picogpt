@@ -353,7 +353,7 @@
 
         // ─── Auto-start ───
         (async function () {
-            seed(42);
+            seed(Date.now());
             const res = await fetch('https://raw.githubusercontent.com/karpathy/makemore/refs/heads/master/names.txt');
             const docs = (await res.text()).trim().split('\n').map(s => s.trim()).filter(Boolean);
             for (let i = docs.length - 1; i > 0; i--) { const j = rand() * (i + 1) | 0;[docs[i], docs[j]] = [docs[j], docs[i]] }
